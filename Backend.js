@@ -67,6 +67,17 @@ app.get('/', (req, res) =>{
 
 //Check if new User connects 
 io.on('connection', (socket) =>{
+    var PLAYERNAME = undefined
+    socket.on('login', (frontEndName) =>{
+        backEndPlayers[socket.id].isDead = false
+        backEndPlayers[socket.id].username = frontEndName
+    })    
+    createPlayer(socket)
+    initializePlayer(socket)
+})
+
+
+function createPlayer(socket){
     PLAYERRADIUS = 10
     console.log('a user connected')
     backEndPlayers[socket.id] = {
@@ -74,8 +85,16 @@ io.on('connection', (socket) =>{
         y: 700 * Math.random() +100,
         color: `hsl(${360 * Math.random()}, 100%, 50%)` ,
         sequenceNumber: 0,//set to check all inputs not handled so far
-        canFire: false
+        canFire: false,
+        life: 10,
+        points: 0,
+        username: undefined,
+        bullet: 0,
+        isDead: true
     }
+}
+
+function initializePlayer(socket){  
 
     //socket for single client io for all
     io.emit('updatePlayers', backEndPlayers)
@@ -143,15 +162,16 @@ io.on('connection', (socket) =>{
 
         //Move
         // if(collosionDetection(backEndPlayers[socket.id].x + (PLAYERX * SPEED)), backEndPlayers[socket.id].y += PLAYERY * SPEED){
-            if(isInGameArea(backEndPlayers[socket.id].x + PLAYERX * SPEED,backEndPlayers[socket.id].y + PLAYERY * SPEED)){
+            if(isPositionValid(backEndPlayers[socket.id].x + PLAYERX * SPEED,backEndPlayers[socket.id].y + PLAYERY * SPEED)){
                 backEndPlayers[socket.id].x += PLAYERX * SPEED 
                 backEndPlayers[socket.id].y += PLAYERY * SPEED
             }
         // }
     })
-})
+}
 
-function isInGameArea(GOTOX,GOTOY){
+
+function isPositionValid(GOTOX,GOTOY){
     if(GOTOX < 10 || GOTOX >1700 || GOTOY < 10 || GOTOY > 900)
         return false
     return true
@@ -196,7 +216,7 @@ function hitdetection(id){
         
         //TODO: backEndProjectiles[id].radius has to be added 
         if (DISTANCE <  5 + backEndPlayer.radius && 
-            backEndProjectiles[id].playerId !== playerId){
+            backEndProjectiles[id].playerId !== playerId && backEndPlayer.isDead == false){
             delete backEndProjectiles[id]
             delete backEndPlayers[playerId]
             // socket[playerId].emit('died','test')

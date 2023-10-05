@@ -1,4 +1,4 @@
-class Sps extends StaticObject{
+class Wall extends StaticObject{
     constructor({ x, y, width, height, color}){
         super({ x, y, width, height, color})
     }

@@ -26,9 +26,7 @@ const playerInputs = []
 
 let sequenceNumber = 0
 
-let userName = ''
-
-let isDead = false
+let isDead = true
 
 //#endregion vars
 
@@ -36,7 +34,15 @@ let isDead = false
 //#region init
 
 socket.on('connect', () =>{
-    socket.emit('initCanvas', {width: canvas.width, height: canvas.height, devicePixelRatio, userName})
+    socket.emit('initCanvas', {width: canvas.width, height: canvas.height, devicePixelRatio})
+})
+
+//Gets called by the Name element
+document.querySelector('#usernameForm').addEventListener('submit', (event) =>{
+    event.preventDefault()  //Prevents refresh
+    document.querySelector('#usernameForm').style.display = 'none'
+    isDead = false
+    socket.emit('login', document.querySelector('#usernameInput').value)
 })
 
 //#endregion init
@@ -46,6 +52,10 @@ socket.on('connect', () =>{
 
 //Update players-function
 socket.on('updatePlayers', (backEndPlayers) => {
+    //TODO Starts the game, when user has chosen a Name
+    if(isDead)
+        return
+    
     transmitPlayerInputs()
     
     handleBackendPlayers(backEndPlayers)   
@@ -81,13 +91,15 @@ function handleBackendPlayers(backEndPlayers){
 
 ///Adds an new frontEndPlayer basend on the backEndPlayer
 function addFrontEndPlayer(id, BACKENDPLAYER){
+    // console.log(BACKENDPLAYER.username)
     frontEndPlayers[id] = new Player({
       x:BACKENDPLAYER.x
     , y:BACKENDPLAYER.y
     , radius:10
     , color: BACKENDPLAYER.color
-    , username:('User: '+id)
+    , username:BACKENDPLAYER.username
     , sequenceNumber: BACKENDPLAYER.sequenceNumber
+    , isDead: BACKENDPLAYER.isDead
 })
 }
 
@@ -96,7 +108,8 @@ function moveFrontEndPlayer(id, BACKENDPLAYER, backEndPlayers){
     //Sets target for the sliding-animation as go to position
     frontEndPlayers[id].target = {
         x: BACKENDPLAYER.x ,
-        y: BACKENDPLAYER.y
+        y: BACKENDPLAYER.y,
+        isDead: BACKENDPLAYER
     }
 
     //This user
@@ -132,6 +145,8 @@ function deleteFrontEndPlayers(backEndPlayers){
 
 function clientDied(){
     isDead = true
+    document.querySelector('#usernameForm').style.display = 'block'
+
 }
 
 ///Calculates new position the own player should be on
@@ -227,6 +242,9 @@ function drawMovableObjects(){
 ///Draws all frontEndPlayers
 function drawPlayers(){
     for(const id in frontEndPlayers){   //Players
+        // if(frontEndPlayer[id].isDead == true)
+        //     continue
+        console.log(frontEndPlayers[id].isDead)
         const frontEndPlayer = frontEndPlayers[id]
         
         if(frontEndPlayer.target){

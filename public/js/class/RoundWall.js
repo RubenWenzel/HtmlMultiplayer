@@ -1,4 +1,4 @@
-class Tank extends StaticObject{
+class RoundWall extends StaticObject{
     constructor({ x, y, width, height, color}){
         super({ x, y, width, height, color})
     }

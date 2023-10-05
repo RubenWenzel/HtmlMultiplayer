@@ -1,11 +1,17 @@
 class Player{
-    constructor({ x, y, radius, color, username, sequenceNumber}) {
+    constructor({ x, y, radius, color, username, sequenceNumber, life, points, bullets}) {
         this.x = x
         this.y = y
         this.radius = radius
         this.color = color
         this.username = username
         this.sequenceNumber = sequenceNumber
+
+        //New
+        this.life = life    //Player hit points
+        this.points = points    //Player points
+        this.bullets = 0    //Player bulletType
+
     }
 
     draw(){
